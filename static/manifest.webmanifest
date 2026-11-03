@@ -1,0 +1,20 @@
+{
+  "name": "TANGGAP – Lapor, pantau, tuntas",
+  "short_name": "TANGGAP",
+  "description": "Laporkan masalah fasilitas umum dan pantau penanganannya.",
+  "lang": "id",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#E9EAE4",
+  "theme_color": "#F5C400",
+  "icons": [
+    { "src": "/ikon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/ikon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/ikon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Buat laporan", "url": "/app/laporan/baru", "icons": [{ "src": "/ikon-192.png", "sizes": "192x192" }] },
+    { "name": "Laporan saya", "url": "/app/laporan", "icons": [{ "src": "/ikon-192.png", "sizes": "192x192" }] }
+  ]
+}

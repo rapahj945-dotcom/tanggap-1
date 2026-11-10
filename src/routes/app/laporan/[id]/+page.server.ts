@@ -57,7 +57,7 @@ export const actions = {
     let fotoSesudah: string | null = null;
     try { fotoSesudah = await simpanFoto(f.get('foto_sesudah')); } catch (e) { return fail(400, { galat: (e as Error).message }); }
 
-    const klien = await pool.connect();
+    const klien = await pool().connect();
     let antrean: Antrean = [];
     try {
       await klien.query('BEGIN');

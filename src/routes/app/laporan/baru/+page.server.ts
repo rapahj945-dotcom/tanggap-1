@@ -49,7 +49,7 @@ export const actions = {
     try { foto = await simpanFoto(f.get('foto')); } catch (e) { return fail(400, { ...balik, galat: (e as Error).message }); }
 
     const kode = await buatKode();
-    const klien = await pool.connect();
+    const klien = await pool().connect();
     let id: number;
     let antrean: Antrean = [];
     try {

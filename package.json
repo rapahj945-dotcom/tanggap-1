@@ -12,6 +12,7 @@
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "^5.1.0",
     "@fontsource-variable/public-sans": "^5.1.0",
+    "@neondatabase/serverless": "^1.2.0",
     "bcryptjs": "^2.4.3",
     "framework7": "^9.3.0",
     "framework7-svelte": "^9.3.0",
@@ -19,6 +20,7 @@
     "pg": "^8.13.0"
   },
   "devDependencies": {
+    "@sveltejs/adapter-cloudflare": "^7.2.10",
     "@sveltejs/adapter-node": "^5.2.0",
     "@sveltejs/kit": "^2.15.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",

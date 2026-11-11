@@ -36,7 +36,7 @@
   <View main router={false} init={false}>
     <Page>
       <Navbar>
-        <NavTitle>TANGGAP <small>{ROLE_LABEL[data.user.role]}</small></NavTitle>
+        <NavTitle><a class="beranda external" href="/app" aria-label="Ke ringkasan">TANGGAP <small>{ROLE_LABEL[data.user.role]}</small></a></NavTitle>
         <NavRight>
           <a class="lonceng external" href="/app/notifikasi" aria-label={`Notifikasi${data.belum ? `, ${data.belum} belum dibaca` : ''}`}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 1112 0c0 5 2 6.5 2 6.5H4S6 14 6 9zM10 19a2 2 0 004 0" /></svg>
@@ -61,6 +61,7 @@
 </App>
 
 <style>
+  .beranda { color: inherit; text-decoration: none; }
   .keluar { background: none; border: 0; color: inherit; padding: 0.5rem; cursor: pointer; display: grid; place-items: center; }
   .keluar svg, :global(.toolbar .tab-link svg) { width: 1.5rem; height: 1.5rem; fill: none; stroke: currentColor; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
   small { font: 700 0.65rem var(--isi); letter-spacing: 0.08em; text-transform: uppercase; color: var(--rambu); margin-left: 0.5rem; }

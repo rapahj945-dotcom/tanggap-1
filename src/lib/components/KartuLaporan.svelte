@@ -12,6 +12,7 @@
   title={l.judul}
   subtitle={`${l.kategori}${l.kecamatan ? ' · ' + l.kecamatan.replace(/ \(.*\)$/, '') : ''}${ekstra}`}
   after={hariLalu(l.created_at)}
+  external
   link={`/app/laporan/${l.id}`}
   class="kartu-laporan"
   style={`--w:${l.warna ?? WARNA_STATUS[l.status] ?? 'var(--aspal)'}`}

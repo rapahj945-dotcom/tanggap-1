@@ -10,6 +10,13 @@ export const load = async ({ locals, url }) => {
   const status = url.searchParams.get('status') ?? '';
   const kategori = url.searchParams.get('kategori') ?? '';
   const kecamatan = url.searchParams.get('kecamatan') ?? '';
+  const desa = url.searchParams.get('desa') ?? '';
+  const petugasId = url.searchParams.get('petugas') ?? '';
+  const pelapor = url.searchParams.get('pelapor') ?? '';
+  const bulan = url.searchParams.get('bulan') ?? '';
+  const sumber = url.searchParams.get('sumber') ?? '';
+  // penanda cepat dari halaman ringkasan: 1 = aktif
+  const tanda = Object.fromEntries(['aktif', 'lama', 'belum', 'selesaibln', 'masukbln', 'berdana'].map((k) => [k, url.searchParams.get(k) === '1' ? '1' : '']));
   const cari = (url.searchParams.get('q') ?? '').trim();
   const hal = Math.max(1, Number(url.searchParams.get('hal')) || 1);
 
@@ -18,6 +25,17 @@ export const load = async ({ locals, url }) => {
   if ((STATUS as readonly string[]).includes(status)) { args.push(status); where.push(`l.status = $${args.length}`); }
   if (/^\d+$/.test(kategori)) { args.push(Number(kategori)); where.push(`l.kategori_id = $${args.length}`); }
   if (/^\d+$/.test(kecamatan)) { args.push(Number(kecamatan)); where.push(`l.kecamatan_id = $${args.length}`); }
+  if (/^\d+$/.test(desa)) { args.push(Number(desa)); where.push(`l.desa_id = $${args.length}`); }
+  if (/^\d+$/.test(petugasId)) { args.push(Number(petugasId)); where.push(`l.petugas_id = $${args.length}`); }
+  if (u.role === 'admin' && /^\d+$/.test(pelapor)) { args.push(Number(pelapor)); where.push(`l.pelapor_id = $${args.length}`); }
+  if (/^\d{4}-\d{2}$/.test(bulan)) { args.push(`${bulan}-01`); where.push(`date_trunc('month', l.created_at) = $${args.length}::date`); }
+  if (sumber) { args.push(sumber); where.push(`COALESCE(NULLIF(l.sumber_dana,''),'Tanpa keterangan') = $${args.length}`); }
+  if (tanda.aktif) where.push(`l.status NOT IN ('Selesai','Ditolak')`);
+  if (tanda.lama) where.push(`l.status IN ('Diterima','Diverifikasi') AND l.created_at < now() - interval '3 days'`);
+  if (tanda.belum) where.push(`l.status IN ('Diterima','Diverifikasi') AND l.petugas_id IS NULL`);
+  if (tanda.selesaibln) where.push(`l.status = 'Selesai' AND l.updated_at >= date_trunc('month', now())`);
+  if (tanda.masukbln) where.push(`l.created_at >= date_trunc('month', now())`);
+  if (tanda.berdana) where.push(`l.dana IS NOT NULL`);
   if (cari) { args.push(`%${cari}%`); where.push(`(l.judul ILIKE $${args.length} OR l.kode ILIKE $${args.length} OR l.alamat ILIKE $${args.length})`); }
   const w = where.join(' AND ');
 
@@ -31,7 +49,7 @@ export const load = async ({ locals, url }) => {
   );
   return {
     baris, total, hal, jumlahHal: Math.max(1, Math.ceil(total / PER_HAL)),
-    filter: { status, kategori, kecamatan, q: cari },
+    filter: { status, kategori, kecamatan, q: cari, desa, petugas: petugasId, pelapor, bulan, sumber, ...tanda },
     kategoriList: await q('SELECT id,nama FROM kategori ORDER BY nama'),
     kecamatanList: await q('SELECT id,nama FROM kecamatan ORDER BY nama'),
     statusList: STATUS

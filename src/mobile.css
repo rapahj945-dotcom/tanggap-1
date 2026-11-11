@@ -58,7 +58,9 @@ html body .block-title { font: 800 0.8125rem var(--tampil); letter-spacing: 0.06
 /* deretan angka kunci */
 .strip-angka { display: flex; gap: 0.75rem; overflow-x: auto; scroll-snap-type: x mandatory; padding: 0.25rem 0.25rem 0.9rem; margin: 0 -0.25rem; scrollbar-width: none; }
 .strip-angka::-webkit-scrollbar { display: none; }
-.strip-angka > p { flex: 0 0 9.5rem; scroll-snap-align: start; margin: 0; padding: 0.8rem 0.9rem; background: var(--kertas); border: 2px solid var(--aspal); border-top: 6px solid var(--rambu); box-shadow: 3px 3px 0 var(--aspal); font-size: 0.75rem; line-height: 1.3; color: var(--senyap); }
+.strip-angka > p, .strip-angka > a { flex: 0 0 9.5rem; scroll-snap-align: start; margin: 0; padding: 0.8rem 0.9rem; background: var(--kertas); border: 2px solid var(--aspal); border-top: 6px solid var(--rambu); box-shadow: 3px 3px 0 var(--aspal); font-size: 0.75rem; line-height: 1.3; color: var(--senyap); }
+.strip-angka > a { display: block; text-decoration: none; }
+.strip-angka > a:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--aspal); }
 .strip-angka b { display: block; font: 800 1.7rem/1.05 var(--tampil); color: var(--aspal); margin-bottom: 0.2rem; white-space: nowrap; }
 .strip-angka small { font-size: 0.9rem; color: var(--senyap); }
 

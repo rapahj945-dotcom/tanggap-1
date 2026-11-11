@@ -3,6 +3,8 @@
   import { invalidateAll } from '$app/navigation';
   import { List, ListGroup, ListItem, ListInput, Sheet, SwipeoutActions, SwipeoutButton, Block } from 'framework7-svelte';
   import { konfirm } from '$lib/f7';
+  import { f7 } from 'framework7-svelte';
+  import { goto } from '$app/navigation';
   let { data, form } = $props();
   let mode = $state<'' | 'jenis' | 'kecamatan' | 'desa'>('');
   let info = $state('');
@@ -16,6 +18,18 @@
     info = h.type === 'failure' ? String((h.data as any)?.galat ?? 'Gagal menghapus.') : h.type === 'success' ? String((h.data as any)?.ok ?? 'Terhapus.') : '';
     await invalidateAll();
   };
+  // Ketuk baris: menu aksi (lihat laporan terkait / hapus), supaya tidak hanya bergantung pada geser.
+  const menu = (judul: string, lihat: string, aksi: string, id: number, e?: Event) => {
+    e?.preventDefault();
+    f7.actions.create({
+      buttons: [
+        { text: judul, label: true },
+        { text: 'Lihat laporan terkait', onClick: () => goto(`/app/laporan?${lihat}`) },
+        { text: 'Hapus', color: 'red', onClick: () => hapus(aksi, id, judul) },
+        { text: 'Batal', color: 'red' }
+      ]
+    }).open();
+  };
   const tutup = () => (mode = '');
   const kirim = () => async ({ result, update }: any) => { await update(); if (result.type === 'success') tutup(); };
 </script>
@@ -24,7 +38,7 @@
 
 <div class="judul-halaman">
   <h1>Data master</h1>
-  <p>Jenis masalah dan wilayah yang muncul di formulir laporan. Geser ke kiri untuk menghapus.</p>
+  <p>Jenis masalah dan wilayah yang muncul di formulir laporan. Ketuk baris untuk membuka laporan terkait atau menghapus.</p>
 </div>
 
 {#if form?.galat || info}<p class="pesan galat" role="alert">{form?.galat ?? info}</p>{/if}
@@ -33,7 +47,7 @@
 <div class="block-title baris-judul">Jenis masalah <button class="tambah" onclick={() => (mode = 'jenis')}>+ Tambah</button></div>
 <List mediaList strong>
   {#each data.kategori as k (k.id)}
-    <ListItem swipeout title={k.nama} subtitle={k.deskripsi || 'Tanpa deskripsi'} text={`${k.dipakai} laporan`} class="jenis" style={`--w:${k.warna}`}>
+    <ListItem swipeout link="#" onClick={(e: Event) => menu(k.nama, `kategori=${k.id}`, 'hapusKategori', k.id, e)} title={k.nama} subtitle={k.deskripsi || 'Tanpa deskripsi'} text={`${k.dipakai} laporan`} class="jenis" style={`--w:${k.warna}`}>
       <SwipeoutActions right><SwipeoutButton overswipe color="red" onClick={() => hapus('hapusKategori', k.id, k.nama)}>Hapus</SwipeoutButton></SwipeoutActions>
     </ListItem>
   {/each}
@@ -45,11 +59,9 @@
 <List strong class="wilayah">
   {#each data.kecamatan as kc (kc.id)}
     <ListGroup>
-      <ListItem swipeout groupTitle title={kc.nama}>
-        <SwipeoutActions right><SwipeoutButton overswipe color="red" onClick={() => hapus('hapusKecamatan', kc.id, kc.nama)}>Hapus</SwipeoutButton></SwipeoutActions>
-      </ListItem>
+      <li class="list-group-title judul-kec"><button type="button" onclick={(e) => menu(kc.nama, `kecamatan=${kc.id}`, 'hapusKecamatan', kc.id, e)}>{kc.nama} <span aria-hidden="true">⋯</span></button></li>
       {#each data.desa.filter((d: any) => d.kecamatan_id === kc.id) as d (d.id)}
-        <ListItem swipeout title={d.nama}>
+        <ListItem swipeout link="#" onClick={(e: Event) => menu(d.nama, `desa=${d.id}`, 'hapusDesa', d.id, e)} title={d.nama}>
           <SwipeoutActions right><SwipeoutButton overswipe color="red" onClick={() => hapus('hapusDesa', d.id, d.nama)}>Hapus</SwipeoutButton></SwipeoutActions>
         </ListItem>
       {/each}
@@ -90,6 +102,7 @@
 </Sheet>
 
 <style>
+  .judul-kec button { width: 100%; display: flex; justify-content: space-between; align-items: center; background: none; border: 0; padding: 0.5rem 0; font: inherit; color: inherit; text-align: left; cursor: pointer; min-height: 2.75rem; }
   .baris-judul { display: flex; justify-content: space-between; align-items: center; }
   .tambah { background: var(--rambu); border: 2px solid var(--aspal); padding: 0.3rem 0.65rem; font: 800 0.75rem var(--tampil); cursor: pointer; box-shadow: 2px 2px 0 var(--aspal); text-transform: none; letter-spacing: 0; }
   .sheet-isi { padding: 0.25rem 1rem 1.25rem; }

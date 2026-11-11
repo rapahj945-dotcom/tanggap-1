@@ -49,15 +49,15 @@ export const load = async ({ locals }) => {
 
   const perStatus = await q(`SELECT status AS label, count(*)::int AS nilai FROM laporan l WHERE ${lingkup} GROUP BY status`, arg);
   const perKategori = await q(
-    `SELECT k.nama AS label, count(*)::int AS nilai, k.warna FROM laporan l JOIN kategori k ON k.id=l.kategori_id WHERE ${lingkup} GROUP BY k.id ORDER BY nilai DESC`,
+    `SELECT k.id, k.nama AS label, count(*)::int AS nilai, k.warna FROM laporan l JOIN kategori k ON k.id=l.kategori_id WHERE ${lingkup} GROUP BY k.id ORDER BY nilai DESC`,
     arg
   );
   const perKecamatan = await q(
-    `SELECT kc.nama AS label, count(*)::int AS nilai FROM laporan l JOIN kecamatan kc ON kc.id=l.kecamatan_id WHERE ${lingkup} GROUP BY kc.id ORDER BY nilai DESC`,
+    `SELECT kc.id, kc.nama AS label, count(*)::int AS nilai FROM laporan l JOIN kecamatan kc ON kc.id=l.kecamatan_id WHERE ${lingkup} GROUP BY kc.id ORDER BY nilai DESC`,
     arg
   );
   const tren = await q(
-    `SELECT to_char(m, 'Mon') AS label, count(l.id)::int AS nilai
+    `SELECT to_char(m, 'Mon') AS label, to_char(m, 'YYYY-MM') AS bulan, count(l.id)::int AS nilai
      FROM generate_series(date_trunc('month', now()) - interval '5 months', date_trunc('month', now()), interval '1 month') m
      LEFT JOIN laporan l ON date_trunc('month', l.created_at) = m AND ${lingkup}
      GROUP BY m ORDER BY m`,

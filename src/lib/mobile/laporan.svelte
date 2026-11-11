@@ -7,6 +7,31 @@
   let { data } = $props();
   let bukaFilter = $state(false);
   const jumlahFilter = $derived([data.filter.status, data.filter.kategori, data.filter.kecamatan].filter(Boolean).length);
+  // Filter tambahan dari ringkasan/detail/master/pengguna; tiap chip bisa diketuk untuk dilepas.
+  const NAMA_FILTER: Record<string, string> = {
+    aktif: 'Sedang berjalan', lama: 'Menunggu > 3 hari', belum: 'Belum ada petugas', selesaibln: 'Selesai bulan ini',
+    masukbln: 'Masuk bulan ini', berdana: 'Ada dana perbaikan'
+  };
+  const chip = $derived.by(() => {
+    const f = data.filter as Record<string, string>;
+    const out: { k: string; teks: string }[] = [];
+    if (f.status) out.push({ k: 'status', teks: `Status: ${f.status}` });
+    if (f.kategori) out.push({ k: 'kategori', teks: `Jenis: ${data.kategoriList.find((x: any) => String(x.id) === f.kategori)?.nama ?? f.kategori}` });
+    if (f.kecamatan) out.push({ k: 'kecamatan', teks: `Kecamatan: ${(data.kecamatanList.find((x: any) => String(x.id) === f.kecamatan)?.nama ?? f.kecamatan).replace(/ \(.*\)$/, '')}` });
+    if (f.desa) out.push({ k: 'desa', teks: 'Kelurahan/desa dipilih' });
+    if (f.petugas) out.push({ k: 'petugas', teks: 'Petugas dipilih' });
+    if (f.pelapor) out.push({ k: 'pelapor', teks: 'Pelapor dipilih' });
+    if (f.bulan) out.push({ k: 'bulan', teks: `Bulan ${f.bulan}` });
+    if (f.sumber) out.push({ k: 'sumber', teks: `Sumber dana: ${f.sumber}` });
+    for (const k of Object.keys(NAMA_FILTER)) if (f[k]) out.push({ k, teks: NAMA_FILTER[k] });
+    return out;
+  });
+  const tanpa = (k: string) => {
+    const p = new URLSearchParams();
+    for (const [kk, v] of Object.entries(data.filter)) if (v && kk !== k) p.set(kk, v as string);
+    return `?${p}`;
+  };
+  const tersembunyiKeys = ['desa', 'petugas', 'pelapor', 'bulan', 'sumber', ...Object.keys(NAMA_FILTER)];
   const judul = $derived(data.user.role === 'warga' ? 'Laporan saya' : data.user.role === 'petugas' ? 'Tugas saya' : 'Semua laporan');
   const tautan = (hal: number) => {
     const p = new URLSearchParams();
@@ -72,6 +97,12 @@
     Filter{#if jumlahFilter}<i class="num">{jumlahFilter}</i>{/if}
   </button>
 </div>
+{#if chip.length}
+  <div class="chips" aria-label="Filter aktif">
+    {#each chip as c}<a href={tanpa(c.k)} aria-label={`Lepas filter ${c.teks}`}>{c.teks}<b aria-hidden="true">×</b></a>{/each}
+    {#if chip.length > 1}<a class="semua" href="/app/laporan">Hapus semua</a>{/if}
+  </div>
+{/if}
 <List class="searchbar-not-found" strong inset><ListItem title="Tidak ada laporan yang cocok" /></List>
 
 {#if data.baris.length === 0}
@@ -98,7 +129,8 @@
 
 <Sheet class="sheet-filter" opened={bukaFilter} onSheetClosed={() => (bukaFilter = false)} swipeToClose backdrop style="height:auto">
   <form method="GET" class="sheet-isi" onsubmit={() => (bukaFilter = false)}>
-    <div class="sheet-judul"><b>Saring laporan</b><a class="reset" href="/app/laporan">Atur ulang</a></div>
+    {#each tersembunyiKeys as k}{#if (data.filter as any)[k]}<input type="hidden" name={k} value={(data.filter as any)[k]} />{/if}{/each}
+    <div class="sheet-judul"><b>Saring laporan</b><a class="reset external" href="/app/laporan" onclick={() => (bukaFilter = false)}>Atur ulang</a></div>
     <List class="form-list">
       <ListInput label="Status" type="select" name="status" value={data.filter.status}>
         <option value="">Semua</option>{#each data.statusList as s}<option value={s}>{s}</option>{/each}
@@ -111,12 +143,24 @@
       </ListInput>
     </List>
     <div class="sheet-tombol"><button class="btn-besar">Terapkan</button></div>
+    {#if data.user.role !== 'warga'}
+      <div class="unduh">
+        <a class="btn-besar" href={ekspor} download>Unduh CSV</a>
+        {#if data.user.role === 'admin'}<a class="btn-besar" href={eksporSp4n} download>Ekspor SP4N-LAPOR!</a>{/if}
+      </div>
+    {/if}
   </form>
 </Sheet>
 
 <style>
   .aksi { margin-left: auto; }
   @media (max-width: 600px) { .aksi { display: none; } }
+  .chips { display: flex; gap: 0.4rem; flex-wrap: wrap; padding: 0.6rem 0.25rem 0; }
+  .chips a { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 2.25rem; padding: 0 0.7rem; border: 2px solid var(--aspal); background: var(--rambu); color: var(--aspal); font: 700 0.75rem var(--isi); text-decoration: none; }
+  .chips a b { font-size: 1rem; line-height: 1; }
+  .chips a.semua { background: var(--kertas); }
+  .unduh { display: grid; gap: 0.5rem; padding: 0.5rem 0.25rem 0; }
+  .unduh a { text-align: center; }
   .kosong { color: var(--senyap); }
   .hal { display: flex; gap: 1.5rem; align-items: center; padding: 1rem 0.25rem; font-weight: 600; }
   .cari-baris { display: flex; align-items: center; gap: 0.5rem; }

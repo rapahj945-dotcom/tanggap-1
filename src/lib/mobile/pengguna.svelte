@@ -38,6 +38,11 @@
     <form method="POST" action="?/ubah" class="sheet-isi" use:enhance={() => async ({ result, update }) => { await update(); if (result.type === 'success') edit = null; }}>
       <input type="hidden" name="id" value={edit.id} />
       <div class="sheet-judul"><b>{edit.nama}</b><span>{edit.email}</span></div>
+      <div class="kontak">
+        {#if edit.role !== 'admin'}<a class="chip external" href={`/app/laporan?${edit.role === 'petugas' ? 'petugas' : 'pelapor'}=${edit.id}`}>Lihat {edit.laporan} laporan</a>{/if}
+        <a class="chip external" href={`mailto:${edit.email}`}>Email</a>
+        {#if edit.no_hp}<a class="chip external" href={`tel:${edit.no_hp}`}>Telepon</a><a class="chip external" href={`https://wa.me/${String(edit.no_hp).replace(/\D/g, '').replace(/^0/, '62')}`} target="_blank" rel="noopener">WhatsApp</a>{/if}
+      </div>
       <List class="form-list" strong>
         <ListInput label="Peran" type="select" name="role" value={edit.role}>
           {#each Object.entries(ROLE_LABEL) as [k, v]}<option value={k}>{v}</option>{/each}
@@ -71,6 +76,9 @@
   .sheet-judul { padding: 0.9rem 0.25rem; display: grid; gap: 0.1rem; font: 800 1.15rem var(--tampil); }
   .sheet-judul span { font: 400 0.8125rem var(--isi); color: var(--senyap); }
   .sheet-tombol { padding: 0.9rem 0.25rem 0; }
+  .kontak { display: flex; flex-wrap: wrap; gap: 0.4rem; padding: 0 0.25rem 0.5rem; }
+  .chip { display: inline-flex; align-items: center; min-height: 2.5rem; padding: 0 0.8rem; border: 2px solid var(--aspal); background: var(--kertas); color: var(--aspal); font: 700 0.8rem var(--isi); text-decoration: none; }
+  .chip:active { background: var(--rambu); }
   :global(.akun .item-link) { border-left: 8px solid var(--w); }
   :global(.akun.nonaktif) { opacity: 0.5; }
   :global(.akun .item-title) { font: 800 1.05rem var(--tampil); }

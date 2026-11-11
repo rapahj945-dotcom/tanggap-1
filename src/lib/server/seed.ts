@@ -32,21 +32,31 @@ const AKUN: [string, string, string, string, string][] = [
 ];
 
 export async function seedIfEmpty() {
-  const { c } = (await one<{ c: string }>('SELECT count(*) AS c FROM users'))!;
-  if (Number(c) > 0) return;
+  const jum = async (t: string) => Number((await one<{ c: string }>(`SELECT count(*) AS c FROM ${t}`))!.c);
 
-  for (const [nama, email, hp, role, pw] of AKUN) {
-    await q('INSERT INTO users (nama,email,no_hp,role,password) VALUES ($1,$2,$3,$4,$5)', [
-      nama, email, hp, role, await bcrypt.hash(pw, 10)
-    ]);
+  // Tiap bagian diperiksa sendiri-sendiri agar seed yang terpotong di tengah
+  // (mis. koneksi terputus) bisa dilanjutkan, bukan berhenti selamanya.
+  if ((await jum('users')) === 0) {
+    for (const [nama, email, hp, role, pw] of AKUN) {
+      await q('INSERT INTO users (nama,email,no_hp,role,password) VALUES ($1,$2,$3,$4,$5) ON CONFLICT (email) DO NOTHING', [
+        nama, email, hp, role, await bcrypt.hash(pw, 10)
+      ]);
+    }
   }
-  for (const [nama, deskripsi, warna] of KATEGORI) {
-    await q('INSERT INTO kategori (nama,deskripsi,warna) VALUES ($1,$2,$3)', [nama, deskripsi, warna]);
+  if ((await jum('kategori')) === 0) {
+    for (const [nama, deskripsi, warna] of KATEGORI) {
+      await q('INSERT INTO kategori (nama,deskripsi,warna) VALUES ($1,$2,$3) ON CONFLICT (nama) DO NOTHING', [nama, deskripsi, warna]);
+    }
   }
-  for (const [kec, desa] of Object.entries(WILAYAH)) {
-    const r = await one<{ id: number }>('INSERT INTO kecamatan (nama) VALUES ($1) RETURNING id', [kec]);
-    for (const d of desa) await q('INSERT INTO desa (kecamatan_id,nama) VALUES ($1,$2)', [r!.id, d]);
+  if ((await jum('kecamatan')) < Object.keys(WILAYAH).length) {
+    for (const [kec, desa] of Object.entries(WILAYAH)) {
+      const sudah = await one<{ id: number }>('SELECT id FROM kecamatan WHERE nama = $1', [kec]);
+      const id = sudah?.id ?? (await one<{ id: number }>('INSERT INTO kecamatan (nama) VALUES ($1) ON CONFLICT (nama) DO NOTHING RETURNING id', [kec]))?.id
+        ?? (await one<{ id: number }>('SELECT id FROM kecamatan WHERE nama = $1', [kec]))!.id;
+      for (const d of desa) await q('INSERT INTO desa (kecamatan_id,nama) VALUES ($1,$2) ON CONFLICT (kecamatan_id,nama) DO NOTHING', [id, d]);
+    }
   }
+  if ((await jum('laporan')) > 0) return;
 
   const users = await q<{ id: number; email: string; nama: string }>('SELECT id,email,nama FROM users');
   const uid = (e: string) => users.find((u) => u.email === e)!;
